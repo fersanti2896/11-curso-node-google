@@ -54,13 +54,37 @@ const googleSingIn = async(req, res = response) => {
     const { id_token } = req.body;
 
     try {
-        const { email, name, picture } = await googleVerify( id_token );
+        const { email, name, img } = await googleVerify( id_token );
+
+        let usuario = await Usuario.findOne({ email });
+        
+        if( !usuario ) {
+            /* Se crea el usuario */
+            const data = {
+                name, 
+                email, 
+                password: 'Not Password',
+                img,
+                google: true,
+                role: "USER_ROLE"
+            };
+
+            usuario = new Usuario( data );
+            await usuario.save();
+        }
+
+        /* Si el usuario en BD está eliminado */
+        if( !usuario.status ) {
+            return res.status(401).json({
+                msg: 'Hable con el administrador, usuario bloqueado.'
+            });
+        }
+
+        const token = await generarJWT( usuario.id );
 
         res.status(200).json({
-            msg: 'Todo bien',
-            email,
-            name,
-            picture
+            usuario,
+            token
         })
     } catch (error) {
         res.status(400).json({

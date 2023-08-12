@@ -16,7 +16,7 @@ async function googleVerify( token = '' ) {
     return {
         email,
         name,
-        picture
+        img: picture
     }
 }
 
